@@ -17,6 +17,7 @@
 package androidx.a2ui.engine.model
 
 import androidx.a2ui.engine.internal.SynchronizedObject
+import com.posthog.kmp.PostHog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -68,6 +69,14 @@ public class A2uiCoreSurfaceGroupModel internal constructor() {
             val existingSurface = current.find { it.id == surface.id }
             _activeSurfaces.value = current.filter { it.id != surface.id } + surface
             existingSurface?.dispose()
+            PostHog.capture(
+                event = "a2ui_surface_added",
+                properties = mapOf(
+                    "surface_id" to surface.id,
+                    "catalog_id" to surface.catalog.id,
+                    "replaced_existing" to (existingSurface != null),
+                ),
+            )
             return true
         }
     }
@@ -85,6 +94,10 @@ public class A2uiCoreSurfaceGroupModel internal constructor() {
             if (removedSurface != null) {
                 _activeSurfaces.value = current.filter { it.id != id }
                 removedSurface.dispose()
+                PostHog.capture(
+                    event = "a2ui_surface_deleted",
+                    properties = mapOf("surface_id" to id),
+                )
             }
         }
     }

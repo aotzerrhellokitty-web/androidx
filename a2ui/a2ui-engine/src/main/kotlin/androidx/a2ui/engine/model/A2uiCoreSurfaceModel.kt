@@ -24,6 +24,7 @@ import androidx.a2ui.model.protocol.A2uiComponentPayload
 import androidx.a2ui.model.protocol.A2uiDataPath
 import androidx.a2ui.model.protocol.A2uiException
 import androidx.a2ui.model.protocol.A2uiUserAction
+import com.posthog.kmp.PostHog
 
 /**
  * The root domain model for a single active surface.
@@ -94,6 +95,14 @@ public class A2uiCoreSurfaceModel(
                 timestamp = timeProvider(),
                 context = context,
             )
+        PostHog.capture(
+            event = "a2ui_action_dispatched",
+            properties = mapOf(
+                "surface_id" to id,
+                "component_id" to componentId,
+                "action_type" to type,
+            ),
+        )
         onDispatchAction(action)
     }
 
@@ -105,6 +114,22 @@ public class A2uiCoreSurfaceModel(
      * @param exception The exception describing the failure.
      */
     public fun dispatchError(componentId: String, exception: A2uiException) {
+        PostHog.captureException(
+            throwable = exception,
+            additionalProperties = mapOf(
+                "surface_id" to id,
+                "component_id" to componentId,
+                "error_code" to exception.code,
+            ),
+        )
+        PostHog.capture(
+            event = "a2ui_error_occurred",
+            properties = mapOf(
+                "surface_id" to id,
+                "component_id" to componentId,
+                "error_code" to exception.code,
+            ),
+        )
         componentRegistry.reportError(componentId, exception)
         val error =
             A2uiClientError(

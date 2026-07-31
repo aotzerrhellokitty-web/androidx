@@ -45,3 +45,4 @@ __pycache__
 !**/src/**/build
 
 .jetskicli/
+.env
