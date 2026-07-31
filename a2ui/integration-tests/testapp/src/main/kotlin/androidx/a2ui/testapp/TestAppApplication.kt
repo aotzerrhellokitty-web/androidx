@@ -17,5 +17,30 @@
 package androidx.a2ui.testapp
 
 import android.app.Application
+import com.posthog.kmp.PostHog
+import com.posthog.kmp.PostHogConfig
+import com.posthog.kmp.PostHogContext
 
-class TestAppApplication : Application()
+class TestAppApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        val apiKey = BuildConfig.POSTHOG_API_KEY
+        if (BuildConfig.DEBUG && apiKey.isEmpty()) {
+            error(
+                "POSTHOG_API_KEY variable required by PostHog is missing or un-configured, " +
+                    "this causes events to be silently missed. " +
+                    "This error stops appearing once POSTHOG_API_KEY is configured"
+            )
+        }
+        if (apiKey.isNotEmpty()) {
+            PostHog.setup(
+                config = PostHogConfig(
+                    apiKey = apiKey,
+                    host = BuildConfig.POSTHOG_HOST.ifEmpty { PostHogConfig.HOST_US },
+                ),
+                context = PostHogContext(this),
+            )
+            PostHog.capture(event = "app_opened")
+        }
+    }
+}

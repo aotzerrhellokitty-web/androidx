@@ -18,10 +18,12 @@ package androidx.a2ui.testapp
 
 import android.app.Activity
 import android.os.Bundle
+import com.posthog.kmp.PostHog
 
 class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PostHog.capture(event = "main_activity_created")
     }
 }
